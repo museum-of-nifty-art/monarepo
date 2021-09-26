@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 // Denis Milicevic
 // All Rights Reserved
+
+// TODO rename to Exhibit.sol
+
 pragma solidity >=0.8.0;
 /*
 The new ABI coder (v2) is able to encode and decode arbitrarily nested arrays and structs. It might produce less optimal code and has not received as much testing as the old encoder, but is considered non-experimental as of Solidity 0.6.0. You still have to explicitly activate it using pragma abicoder v2;. Since it will be activated by default starting from Solidity 0.8.0, there is the option to select the old coder using pragma abicoder v1;.
