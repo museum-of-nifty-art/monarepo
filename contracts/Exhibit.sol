@@ -64,13 +64,13 @@ contract Exhibit {
      * @param id The curation
      */
     event ListingNFT(
-        bytes32 indexed id,
+        bytes32 id,
         address indexed owner,
         address indexed addressNFT,
         uint256 indexed idNFT,
         uint64 duration,
         uint256 expiryTime
-    ) anonymous;
+    );
 
     /**
      * @notice Allows collectors/artists to list their NFTs if duration requirements are met and fees paid
@@ -103,9 +103,12 @@ contract Exhibit {
         // ERC721 + is made modular to support cryptopunks and others, erc1135...
         // could also just handle this using abiEncodes, or whitelist them in this contract...
         // could also always do this first, and if it fails/is missing this interface allow a fallback
-        require(IERC721(_contractAddressNFT).ownerOf(_tokenIdNFT) == msg.sender);
+        require(
+            IERC721(_contractAddressNFT).ownerOf(_tokenIdNFT) == msg.sender,
+            "Sender is not the owner of the NFT"
+        );
         // duration sanity checks, currently enabled for UI efficacy
-        require(_duration > 86400); // make sure minimum duration of 1 day is met... consider settable gov param
+        require(_duration >= 86400); // make sure minimum duration of 1 day is met... consider settable gov param
         require(_duration <= 86400*30); // max enforcement, for more efficient event scanning, TODO make settable
 
         bytes32 id = getCurationId(_contractAddressNFT, _tokenIdNFT);
