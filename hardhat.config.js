@@ -18,26 +18,26 @@ module.exports = {
       url: "http://localhost:8545"
     },
     mainnet: {
-      url: "https://mainnet.infura.io/v3/7963b5de0dc74deba99752bf439919a0",
+      url: "https://mainnet.infura.io/v3/31418bbd3fe041febb62054997eac515",
       accounts: {
         mnemonic
       }
     },
     ropsten: {
-      url: "https://ropsten.infura.io/v3/7963b5de0dc74deba99752bf439919a0",
+      url: "https://ropsten.infura.io/v3/31418bbd3fe041febb62054997eac515",
       accounts: {
         mnemonic
       }
     },
     matic: {
-      url: "https://polygon-mumbai.infura.io/v3/7963b5de0dc74deba99752bf439919a0",
+      url: "https://polygon-mumbai.infura.io/v3/31418bbd3fe041febb62054997eac515",
       gasPrice: 1000000000,
       accounts: {
         mnemonic
       }
     },
     mumbai: {
-      url: "https://polygon-mumbai.infura.io/v3/7963b5de0dc74deba99752bf439919a0",
+      url: "https://polygon-mumbai.infura.io/v3/31418bbd3fe041febb62054997eac515",
       gasPrice: 1000000000,
       accounts: {
         mnemonic
