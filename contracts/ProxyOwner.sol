@@ -18,7 +18,7 @@ contract ProxyOwner is Ownable {
     mapping(uint256 => action) actions;
     uint256 _last_action_id;
     // Maximum time between proposal time and trigger time.
-    uint _expiration;
+    uint256 _expiration;
 
     /// @dev This is 100% scaled up by a factor of 10 to give us an extra 1 decimal place of precision
     uint256 public constant MAX_AMOUNT_SCALE = 1000;
@@ -73,10 +73,10 @@ contract ProxyOwner is Ownable {
         if (_asset != address(0)) {
             uint256 totalAmount = IERC20(_asset).balanceOf(address(this));
             require(totalAmount > 0, "amount to withdraw is equal to zero");
-             ownerAmount = totalAmount.mul(MAX_AMOUNT_SCALE).div(
+            ownerAmount = totalAmount.mul(MAX_AMOUNT_SCALE).div(
                 _communityFeeScaled + MAX_AMOUNT_SCALE
             );
-             communityAmount = totalAmount.sub(ownerAmount);
+            communityAmount = totalAmount.sub(ownerAmount);
             IERC20(_asset).safeTransferFrom(address(this), owner, ownerAmount);
             IERC20(_asset).safeTransferFrom(
                 address(this),
@@ -86,10 +86,10 @@ contract ProxyOwner is Ownable {
         } else {
             uint256 totalAmount = address(this).balance;
             require(totalAmount > 0, "amount to withdraw is equal to zero");
-             ownerAmount = totalAmount.mul(MAX_AMOUNT_SCALE).div(
+            ownerAmount = totalAmount.mul(MAX_AMOUNT_SCALE).div(
                 _communityFeeScaled + MAX_AMOUNT_SCALE
             );
-             communityAmount = totalAmount.sub(ownerAmount);
+            communityAmount = totalAmount.sub(ownerAmount);
             payable(owner).transfer(ownerAmount);
             payable(_communityPool).transfer(communityAmount);
         }
