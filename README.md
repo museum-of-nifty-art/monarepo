@@ -1,15 +1,23 @@
-# Basic Sample Hardhat Project
+# :wrench: :construction: MoNA's Smart Contracts.
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+&nbsp;
 
-Try running some of the following tasks:
+This repo is to demonstrate how you would set up the MoNA smart-contract development environment using HardHat to do most of the heavy lifting for you. Head on over to the `./test` folder to examine the javascript files that thoroughly test the smart-contract, which latter you will find in `./contracts`.
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+## :page_with_curl:  _Instructions_
+
+**1)** Fire up your favourite console & clone this repo somewhere:
+
+__`❍ git clone https://github.com/museum-of-nifty-art/monarepo.git`__
+
+**2)** Enter this directory & install dependencies:
+
+__`❍ cd monarepo && npm install`__
+
+**3)** Set the tests going!
+
+__`❍ npx hardhat test`__
+
+&nbsp;
+
+__*Happy testing!*__
