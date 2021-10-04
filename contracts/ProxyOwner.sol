@@ -7,17 +7,35 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+/// @title MoNA Proxy Owner
+/// @notice Manage NFT owner listings.
 contract ProxyOwner is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    event Executed(uint256 indexed action_id);
+    event NFTListed(address sender, address nftContract, uint256 tokenId);
+    event Received(address, uint);
+    event TransferredToOwner(
+        address _from,
+        address _to,
+        address _asset,
+        uint256 _amount
+    );
+    event TransferredToCommunity(
+        address _from,
+        address _to,
+        address _asset,
+        uint256 _amount
+    );
+
     address private _communityPool;
 
-    // This is an easy way to create proposals for most actions.
+    /// @dev This is an easy way to create proposals for most actions.
     mapping(address => bytes) last_calldata;
     mapping(uint256 => action) actions;
     uint256 _last_action_id;
-    // Maximum time between proposal time and trigger time.
+    /// @dev Maximum time between proposal time and trigger time.
     uint256 _expiration;
 
     /// @dev This is 100% scaled up by a factor of 10 to give us an extra 1 decimal place of precision
@@ -34,38 +52,33 @@ contract ProxyOwner is Ownable {
         bool executed; // Was this action successfully executed
     }
 
-    event NFTListed(address sender, address nftContract, uint256 tokenId);
-    event TransferredToOwner(
-        address _from,
-        address _to,
-        address _asset,
-        uint256 _amount
-    );
-    event TransferredToCommunity(
-        address _from,
-        address _to,
-        address _asset,
-        uint256 _amount
-    );
-    event Executed(uint256 indexed action_id);
-
+    /// @dev Constructor of the Proxy Owner.
+    /// @param _owner_ is the NFT owner.
+    /// @param _pool_ is the MoNA community pool address.
+    /// @param _communityFee_ is the fee that the community will get from the NFT sells.
+    /// @param _expirationTime_ is the expiration time of the NFT sell.
     constructor(
         address _owner_,
         address _pool_,
         uint256 _communityFee_,
         uint256 _expirationTime_
-    ) public {
+    ) {
         _communityFeeScaled = _communityFee_;
         _communityPool = _pool_;
         _expiration = _expirationTime_;
         transferOwnership(_owner_);
     }
 
-    function listNFT(address nftContract, uint256 tokenId) public {
-        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
-        emit NFTListed(msg.sender, nftContract, tokenId);
+    /// @dev Method to send the NFT to the proxy.
+    /// @param _nftContract is the NFT mother contract.
+    /// @param _tokenId is the id of the specific NFT to be listed.
+    function listNFT(address _nftContract, uint256 _tokenId) public {
+        IERC721(_nftContract).transferFrom(msg.sender, address(this), _tokenId);
+        emit NFTListed(msg.sender, _nftContract, _tokenId);
     }
 
+    /// @dev Method to collect the amount resulting from the NFT sells.
+    /// @param _asset is the type of asset to retrieve (can be ETH or ERC20s).
     function withdraw(address _asset) public {
         uint256 ownerAmount;
         uint256 communityAmount;
@@ -102,20 +115,26 @@ contract ProxyOwner is Ownable {
         );
     }
 
-    // `execute` an action using the callData from this sender's last call.
-    function executeLast(address target, uint256 value) external {
-        return execute(target, last_calldata[msg.sender], value);
+    /// @dev Method to execute an action using the callData from this sender's last call.
+    /// @param _target is the target address for the execution.
+    /// @param _value is the amount of ETH that will be in msg.value.
+    function executeLast(address _target, uint256 _value) external {
+        return execute(_target, last_calldata[msg.sender], _value);
     }
 
+    /// @dev Method to execute an action.
+    /// @param _target is the target address for the execution.
+    /// @param _calldata is the raw input of the transaction to be executed.
+    /// @param _value is the amount of ETH that will be in msg.value.
     function execute(
-        address target,
-        bytes memory callData,
-        uint256 value
+        address _target,
+        bytes memory _calldata,
+        uint256 _value
     ) public onlyOwner {
         action memory a;
-        a.target = target;
-        a.callData = callData;
-        a.value = value;
+        a.target = _target;
+        a.callData = _calldata;
+        a.value = _value;
         a.expiration = block.timestamp + _expiration;
         // Increment first because, 0 is not a valid ID.
         _last_action_id++;
@@ -132,7 +151,13 @@ contract ProxyOwner is Ownable {
         emit Executed(_last_action_id);
     }
 
+    /// @dev Standard fallback method.
     fallback() external payable {
         last_calldata[msg.sender] = msg.data;
+    }
+
+    /// @dev Standard receive method.
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
     }
 }
