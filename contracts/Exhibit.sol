@@ -97,8 +97,11 @@ contract Exhibit {
      * @custom:note This is the only function well commented, to serve as an example basis on good format
      * the rest of this code should follow, but left out for now, to allow for more code fluidity/dev
      */
-    function listNFT(address _contractAddressNFT, uint256 _tokenIdNFT, uint64 _duration)
-    external {
+    function listNFT(
+        address _contractAddressNFT,
+        uint256 _tokenIdNFT,
+        uint64 _duration
+    ) external {
         // this is the most ERC721 specific part... could delegate this to a upgradeable contract, that handles
         // ERC721 + is made modular to support cryptopunks and others, erc1135...
         // could also just handle this using abiEncodes, or whitelist them in this contract...
@@ -109,7 +112,7 @@ contract Exhibit {
         );
         // duration sanity checks, currently enabled for UI efficacy
         require(_duration >= 86400); // make sure minimum duration of 1 day is met... consider settable gov param
-        require(_duration <= 86400*30); // max enforcement, for more efficient event scanning, TODO make settable
+        require(_duration <= 86400 * 30); // max enforcement, for more efficient event scanning, TODO make settable
 
         bytes32 id = getCurationId(_contractAddressNFT, _tokenIdNFT);
         // TODO is optimizer smart enough to automate storing repeated storage calls inscope, so this isn't needed?
@@ -119,20 +122,29 @@ contract Exhibit {
         uint256 expiry = block.timestamp + _duration;
 
         // by emitting duration, we offload the possibility of figuring out listing time off-chain (exp - dur)
-        emit ListingNFT(id, msg.sender, _contractAddressNFT, _tokenIdNFT, _duration, expiry);
+        emit ListingNFT(
+            id,
+            msg.sender,
+            _contractAddressNFT,
+            _tokenIdNFT,
+            _duration,
+            expiry
+        );
 
         listedNFT[id] = expiry;
     }
 
     // helpers
     function getCurationId(address _contractNFT, uint256 _tokenIdNFT)
-    public
-    view
-    returns (bytes32 id) {
+        public
+        view
+        returns (bytes32 id)
+    {
         // TODO consider omitting msg.sender... so points can be cumulative across owners
         // as they ought to be OR see if this indeed the right mechanism to request
         // a points transfer, assuming sale happened via MONA
-        return keccak256(abi.encodePacked(msg.sender, _contractNFT, _tokenIdNFT));
+        return
+            keccak256(abi.encodePacked(msg.sender, _contractNFT, _tokenIdNFT));
     }
 
     struct Bonded {
@@ -142,14 +154,14 @@ contract Exhibit {
         uint256 amount; // second slot
     }
 
-    mapping (address => mapping(uint256 => Bonded)) bondTracker;
+    mapping(address => mapping(uint256 => Bonded)) bondTracker;
     // for efficiency, but sacrificing UX, could have a variable tracking the last unclaimed idx,
     // the pitfall with that is that earlier expiring bonds cannot be claimed until some later ones expire
     // could work around this by using a simple sort algorithm, before the push, where we check if this new bonding
     // expires before or after the last element, and depending on that, we shift it in or not.
-    mapping (address => Bonded[]) bondTracker2;
+    mapping(address => Bonded[]) bondTracker2;
     // could track via events?
-    mapping (address => uint256) bondIdxCtr;
+    mapping(address => uint256) bondIdxCtr;
     // check whitelisted ERC20s
 
     // TODO can be made more efficient by iterating off-chain or with a helper function that iterates,
@@ -167,10 +179,9 @@ contract Exhibit {
         uint256 bondTrackerIdx
     );
 
-    mapping (address => bool) whitelistedERC20;
+    mapping(address => bool) whitelistedERC20;
 
-    function withdrawExpiredBond(uint256 _idx)
-    external {
+    function withdrawExpiredBond(uint256 _idx) external {
         Bonded memory bond = bondTracker2[msg.sender][_idx];
         require(bond.claimed == false);
         require(bond.expiry < block.timestamp);
@@ -178,13 +189,15 @@ contract Exhibit {
         // TODO consider deletion for pub wellbeing and avoid storj rent
         bondTracker2[msg.sender][_idx].claimed = true;
 
-        IERC20(bond.ERC20).safeTransfer(
-            msg.sender,
-            bond.amount
-        );
+        IERC20(bond.ERC20).safeTransfer(msg.sender, bond.amount);
     }
-    function reactionBond(bytes32 _curationId, address _ERC20, uint256 _amount, uint64 _duration)
-    external {
+
+    function reactionBond(
+        bytes32 _curationId,
+        address _ERC20,
+        uint256 _amount,
+        uint64 _duration
+    ) external {
         /**
          * we don't use a variable here for optimization
          * (optimizer is smart enough to optimize, with sufficiently high runs)
@@ -204,31 +217,41 @@ contract Exhibit {
          * NOTE naively assumes just USDT stablecoin atm, for other ERC20 we will need to calc TWAP TODO
          * set min point threshold here
          */
-        uint points = quadraticScoring(getDollarValue(_ERC20, _amount), _duration);
+        uint256 points = quadraticScoring(
+            getDollarValue(_ERC20, _amount),
+            _duration
+        );
         // TODO check if any diff between > or >= in terms of gas costs
         // NOTE consider some sane settable minimum
         require(points > 0);
 
         // TODO ensure ERC20 is whitelisted
-        IERC20(_ERC20).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _amount
-        );
+        IERC20(_ERC20).safeTransferFrom(msg.sender, address(this), _amount);
 
         // bonding time cannot exceed curation expiry time, so if it would yield higher bond time
         // we fallback and set the bonding expiry time to match the curation expiry
-        uint64 bondingExpiryTime = _duration + block.timestamp <= curationExpiryTime ?
-            _duration + uint64(block.timestamp) :
-            curationExpiryTime - uint64(block.timestamp);
+        uint64 bondingExpiryTime = _duration + block.timestamp <=
+            curationExpiryTime
+            ? _duration + uint64(block.timestamp)
+            : curationExpiryTime - uint64(block.timestamp);
 
         //bondTracker[msg.sender][bondIdxCtr[msg.sender]++] = Bonded(false, bondingExpiryTime, _ERC20, _amount);
         // TODO consider sorting technique for claim tracking
         // TODO need to fix this mechanism so it tracks repeated rebondings OR
         // block this msg.sender from doing anymore bondings this epoch
-        uint bondTrackerIdx = bondTracker2[msg.sender].length;
-        bondTracker2[msg.sender].push(Bonded(false, bondingExpiryTime, _ERC20, _amount));
-        emit LOG_Bonded(_curationId, msg.sender, _ERC20, _amount, bondingExpiryTime, points, bondTrackerIdx);
+        uint256 bondTrackerIdx = bondTracker2[msg.sender].length;
+        bondTracker2[msg.sender].push(
+            Bonded(false, bondingExpiryTime, _ERC20, _amount)
+        );
+        emit LOG_Bonded(
+            _curationId,
+            msg.sender,
+            _ERC20,
+            _amount,
+            bondingExpiryTime,
+            points,
+            bondTrackerIdx
+        );
 
         // send points
         // curationID add points
@@ -236,31 +259,34 @@ contract Exhibit {
         // TODO the above are not strictly necessary for V0, but will be for future versions
     }
 
-   function quadraticScoring(uint _dollarValue, uint64 _duration)
-   public
-   pure returns (uint) {
-       // TODO apply bonus somehow on early finding if possibru?
-       // TODO levels
-       // sqrt(200) * 86400 * 30 *20  / 1e6 needs to be improved,
-       // puts a bit too much power in the crowd, i.e. not very sybil resistant
-       return sqrt(_dollarValue) * _duration;
-   }
+    function quadraticScoring(uint256 _dollarValue, uint64 _duration)
+        public
+        pure
+        returns (uint256)
+    {
+        // TODO apply bonus somehow on early finding if possibru?
+        // TODO levels
+        // sqrt(200) * 86400 * 30 *20  / 1e6 needs to be improved,
+        // puts a bit too much power in the crowd, i.e. not very sybil resistant
+        return sqrt(_dollarValue) * _duration;
+    }
 
-   // consider whether ETH value may be better? It would grow with the system maybeh?
-   function getDollarValue(address _ERC20, uint _amount)
-   public
-   view
-   returns (uint) {
-       // this currently only works with USD stablecoins
-       return _amount / 10** IERC20Metadata(_ERC20).decimals();
-   }
+    // consider whether ETH value may be better? It would grow with the system maybeh?
+    function getDollarValue(address _ERC20, uint256 _amount)
+        public
+        view
+        returns (uint256)
+    {
+        // this currently only works with USD stablecoins
+        return _amount / 10**IERC20Metadata(_ERC20).decimals();
+    }
 
     // from uniswap v2
     // TODO consider other more efficient but also tried and true: https://github.com/hifi-finance/prb-math
-    function sqrt(uint y) internal pure returns (uint z) {
+    function sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {
             z = y;
-            uint x = y / 2 + 1;
+            uint256 x = y / 2 + 1;
             while (x < z) {
                 z = x;
                 x = (y / x + x) / 2;
@@ -272,9 +298,10 @@ contract Exhibit {
 
     // helpers to build needed approve call data on erc20, can be offloaded to just ui as well
     function getApproveTokenCalldata()
-    external
-    view
-    returns (bytes memory data) {
+        external
+        view
+        returns (bytes memory data)
+    {
         data = abi.encodeWithSelector(
             IERC20(address(0)).approve.selector,
             address(this),
@@ -287,9 +314,10 @@ contract Exhibit {
     // so keeping this non-zero would at least avoid future re-approval cost increases,
     // where setting back from zero to non-zero is 20k gas
     function getUnapproveTokenCalldata()
-    external
-    view
-    returns (bytes memory data) {
+        external
+        view
+        returns (bytes memory data)
+    {
         data = abi.encodeWithSelector(
             IERC20(address(0)).approve.selector,
             address(this),

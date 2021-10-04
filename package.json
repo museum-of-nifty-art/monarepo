@@ -1,5 +1,36 @@
 {
   "name": "mona-exhibit-contracts",
+  "description": "Smart contracts of the MoNA project",
+  "version": "0.0.1",
+  "main": "",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "verify": "npx hardhat verify",
+    "prettier": "prettier --write 'contracts/**/*.sol'",
+    "lint": "prettier --list-different 'contracts/**/*.sol'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/museum-of-nifty-art/monarepo.git"
+  },
+  "keywords": [
+    "mona",
+    "nfts",
+    "marketplace",
+    "social",
+    "network",
+    "decentralized"
+  ],
+  "author": [
+    "Denis Milicevic <denis.milicevic@gmail.com>",
+    "Riccardo Persiani <r.persiani92@gmail.comk>"
+  ],
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/museum-of-nifty-art/monarepo/issues"
+  },
+  "homepage": "https://github.com/museum-of-nifty-art/monarepo#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -7,6 +38,11 @@
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.7",
-    "hardhat": "^2.6.4"
+    "hardhat": "^2.6.4",
+    "prettier": "^2.4.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.18"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0"
   }
 }
