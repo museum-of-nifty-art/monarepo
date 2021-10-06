@@ -6,6 +6,8 @@
 <main>
   <img src={logo} alt="Svelte Logo" />
   <h1>Hello world!</h1>
+  <button class="btn btn-primary">daisyUI Button</button>
+
 
   <Counter />
 

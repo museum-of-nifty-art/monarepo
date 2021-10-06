@@ -6,7 +6,15 @@ const config = {
     extend: {}
   },
 
-  plugins: []
+  plugins: [
+    require('daisyui'),
+  ],
+
+  daisyui: {
+    themes: [
+      'cyberpunk'
+    ]
+  }
 };
 
 module.exports = config;
