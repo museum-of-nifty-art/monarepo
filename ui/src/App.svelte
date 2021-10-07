@@ -4,7 +4,7 @@
 </script>
 
 <main>
-  <div class='grid grid-cols-1 gap-6 lg:p-10 xl:grid-cols-3 lg:bg-base-200 rounded-box'>
+  <div class='grid grid-cols-1 lg:gap-6 lg:p-10 md:grid-cols-2 xl:grid-cols-3 bg-base-300 rounded-box'>
     <Navbar />
     <ViewNFT />
     <ViewNFT />
